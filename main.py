@@ -3,6 +3,7 @@ from streamlit_option_menu import option_menu
 import pandas as pd
 import altair as alt
 import joblib
+from lightgbm import LGBMClassifier
 
 
 # IMPORT DATA
