@@ -162,7 +162,7 @@ def body_2():
         st.markdown(f'''
             <h4 style="text-align: center;">
                 Berdasarkan input di atas, debitur bersangkutan diprediksi memiliki resiko
-                <strong style="color: {color_lvl[int(pred-1)]};">{risk_lvl[int(pred) - 1]}</strong> dalam peminjaman.
+                <strong style="color: {color_lvl[int(pred-1)]};">{risk_lvl[int(pred) - 1]} ({pred})</strong> dalam peminjaman.
             </h4>
         ''', unsafe_allow_html=True)
 
