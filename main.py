@@ -93,7 +93,7 @@ def body_2():
             plafon = st.number_input(
                 label='Plafon (juta Rupiah)',
                 min_value=0., max_value=None,
-                value=271000., step=1.
+                value=271., step=1.
             )
             tenor = st.number_input(
                 label='Tenor (bulan)',
@@ -119,7 +119,7 @@ def body_2():
 
     if submitted:
         X = [
-            nilai_agunan, dbr, plafon, nilai_agunan/plafon, tenor, usia,
+            nilai_agunan * 1e6, dbr, plafon * 1e6, nilai_agunan/plafon, tenor, usia,
             encoders['jenis_pinjaman'].transform([jenis_pinjaman]).item(),
             encoders['alamat_kota'].transform([alamat_kota]).item(),
             encoders['Penilaian Rekening Koran'].transform([rek_koran]).item(),
