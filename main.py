@@ -1,14 +1,18 @@
+import joblib
 import streamlit as st
 from streamlit_option_menu import option_menu
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 import altair as alt
-import joblib
-from lightgbm import LGBMClassifier
+import shap
 
 
 # IMPORT DATA
 model = joblib.load('./model/lgb_rand.joblib')
 encoders = joblib.load('./model/label_encoders.joblib')
+explainer = joblib.load('./model/shap_explainer.joblib')
+
 
 # PAGE CONFIG
 def set_page_config():
@@ -137,33 +141,48 @@ def body_2():
         })
         df['condition'] = df['probs']==df['probs'].max()
 
-        base = alt.Chart(df).encode(
-            y=alt.Y('risk:N', title='', axis=alt.Axis(labelAngle=0), sort=risk_lvl),
-            x=alt.X('probs:Q', title='Probabilitas', scale=alt.Scale(domain=[0, 1]), axis=alt.Axis(grid=False, domain=True, tickCount=10, format='.0%')),
-            text=alt.Text('probs:Q', format=".2%")
-        )
-        bars = base.mark_bar().encode(
-            color=alt.Color(
-                'risk:N',
-                scale=alt.Scale(domain=risk_lvl, range=['#44ce1b', '#deff8b', '#f7e379', '#f2a134', '#ff4545', '#e51f1f']),
-                legend=None
-            )
-        )
-        text = base.mark_text(align='left', dx=10).encode(color=alt.value('white'))
-        chart = (bars + text).properties(title='Prediksi Tingkat Resiko Debitur', width=500, height=400)
-
+        # base = alt.Chart(df).encode(
+        #     y=alt.Y('risk:N', title='', axis=alt.Axis(labelAngle=0), sort=risk_lvl),
+        #     x=alt.X('probs:Q', title='Probabilitas', scale=alt.Scale(domain=[0, 1]), axis=alt.Axis(grid=False, domain=True, tickCount=10, format='.0%')),
+        #     text=alt.Text('probs:Q', format=".2%")
+        # )
+        # bars = base.mark_bar().encode(
+        #     color=alt.Color(
+        #         'risk:N',
+        #         scale=alt.Scale(domain=risk_lvl, range=['#44ce1b', '#deff8b', '#f7e379', '#f2a134', '#ff4545', '#e51f1f']),
+        #         legend=None
+        #     )
+        # )
+        # text = base.mark_text(align='left', dx=10).encode(color=alt.value('white'))
+        # chart = (bars + text).properties(title='Prediksi Tingkat Resiko Debitur', width=500, height=400)
+        #
         color_lvl = ['#44ce1b', '#deff8b', '#f7e379', '#f2a134', '#ff4545', '#e51f1f']
 
         st.write('\n')
         st.markdown(f'''
             <h4 style="text-align: center;">
-                Berdasarkan input di atas, debitur bersangkutan diprediksi memiliki resiko 
+                Berdasarkan input di atas, debitur bersangkutan diprediksi memiliki resiko
                 <strong style="color: {color_lvl[int(pred-1)]};">{risk_lvl[int(pred) - 1]}</strong> dalam peminjaman.
-            </h4>  
+            </h4>
         ''', unsafe_allow_html=True)
+
         st.write('\n')
         st.divider()
-        st.altair_chart(chart, use_container_width=True)
+        # st.altair_chart(chart, use_container_width=True)
+
+        sv = explainer(np.array(X).reshape(1, -1))
+        shap_values = shap.Explanation(sv.values[:, :, int(pred)-1],
+                               sv.base_values[:, int(pred)-1],
+                               data=np.array(X).reshape(1, -1),
+                               feature_names=model.feature_name_)
+
+        shap.plots.waterfall(shap_values[0], max_display=len(X), show=False)
+        fig = plt.gcf()
+        fig.set_size_inches(20, 12)
+        plt.tight_layout()
+        st.pyplot(fig, use_container_width=False)
+
+
 
 
 # BODY 3
